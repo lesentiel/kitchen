@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "kitchen",
+  "project_id": "35e088ce-ca9d-446e-b65a-0afea00be2a9"
+}
