@@ -28,7 +28,7 @@ kitchen is a self-hostable remote MCP server for a shared kitchen. Each partner 
                                             └──────────────────────────────────┘
 ```
 
-* `src/index.ts`: the fetch entry. It routes `/mcp`, authenticates, and hands the request to the SDK. `GET /` returns a small JSON descriptor.
+* `src/index.ts`: the fetch entry. It routes `/mcp`, authenticates, and hands the request to the SDK. `GET /` serves the one-page homepage (`site/index.html`, bundled into the Worker as a string, so there's no static-assets config) with the GitHub and Deploy to Cloudflare buttons and this server's own MCP URL. `/.well-known/kitchen.json` returns a small JSON descriptor.
 * `src/server.ts`: builds an `McpServer` for one request. It holds the zod input schemas and tool annotations for every tool.
 * `src/kitchen.ts`, `recipes.ts`, `grocery.ts`, `notes.ts`: data access. Every query is bound to `me.kitchenId`.
 * `src/auth.ts`, `src/util.ts`: token parsing and lookup, ID, token, and invite-code generation, hashing.

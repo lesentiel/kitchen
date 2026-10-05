@@ -3,6 +3,7 @@ import { createMcpHandler } from "@modelcontextprotocol/server";
 import { bearerToken, memberFrom, resolveMember, toAuthInfo, unauthorized } from "./auth.ts";
 import { ensureMigrated } from "./migrate.ts";
 import { SERVER_INFO, createServer } from "./server.ts";
+import homepage from "../site/index.html?raw";
 
 export const MCP_PATH = "/mcp";
 
@@ -28,13 +29,14 @@ export default {
 			return mcp.fetch(request, { authInfo: toAuthInfo(token, member) });
 		}
 
-		if (url.pathname === "/" && request.method === "GET") {
-			return Response.json({
-				name: SERVER_INFO.name,
-				version: SERVER_INFO.version,
-				mcp: new URL(MCP_PATH, url).href,
-				docs: "https://github.com/lesentiel/kitchen#readme",
+		if (url.pathname === "/" && (request.method === "GET" || request.method === "HEAD")) {
+			return new Response(homepage, {
+				headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300" },
 			});
+		}
+
+		if (url.pathname === "/.well-known/kitchen.json") {
+			return Response.json({ name: SERVER_INFO.name, version: SERVER_INFO.version, mcp: new URL(MCP_PATH, url).href });
 		}
 
 		return new Response("Not found", { status: 404 });

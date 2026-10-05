@@ -46,8 +46,13 @@ describe("http", () => {
 		expect(body.result.structuredContent.me.display_name).toBe("Old Bot");
 	});
 
-	it("GET / describes the server; unknown paths 404", async () => {
-		const info = await workerFetch("https://kitchen.test/");
+	it("GET / serves the homepage; unknown paths 404", async () => {
+		const home = await workerFetch("https://kitchen.test/");
+		expect(home.headers.get("content-type")).toMatch(/text\/html/);
+		const html = await home.text();
+		expect(html).toContain("https://deploy.workers.cloudflare.com/?url=https://github.com/lesentiel/kitchen");
+		expect(html).toContain("https://github.com/lesentiel/kitchen");
+		const info = await workerFetch("https://kitchen.test/.well-known/kitchen.json");
 		expect(await info.json()).toMatchObject({ name: "kitchen", mcp: "https://kitchen.test/mcp" });
 		expect((await workerFetch("https://kitchen.test/nope")).status).toBe(404);
 	});

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kitchen: a shared kitchen for your cooking assistants</title>
+<meta name="description" content="kitchen is an open-source MCP server on Cloudflare that lets every cooking assistant in your household share recipes, one grocery list, and notes about what you like to eat.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
+<style>
+:root {
+	--bg: #fbf8f3;
+	--surface: #ffffff;
+	--text: #1f1b16;
+	--muted: #6b6258;
+	--line: #e8e1d6;
+	--accent: #c2410c;
+	--accent-ink: #ffffff;
+	--code-bg: #f3eee6;
+	--shadow: 0 1px 2px rgb(31 27 22 / 0.06), 0 4px 16px rgb(31 27 22 / 0.05);
+	color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #15120f;
+		--surface: #1e1a16;
+		--text: #f2ece4;
+		--muted: #a89e92;
+		--line: #322c25;
+		--accent: #fb923c;
+		--accent-ink: #1a0f06;
+		--code-bg: #26211b;
+		--shadow: none;
+		color-scheme: dark;
+	}
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+	font: 17px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+a { color: var(--accent); }
+code, pre { font: 0.9em/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+
+header.top { display: flex; align-items: center; justify-content: space-between; padding-top: 20px; padding-bottom: 20px; gap: 12px; }
+.brand { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.01em; text-decoration: none; color: var(--text); }
+.brand span { margin-right: 6px; }
+
+.btn {
+	display: inline-flex; align-items: center; gap: 8px;
+	padding: 10px 16px; border-radius: 8px; border: 1px solid var(--line);
+	background: var(--surface); color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+	box-shadow: var(--shadow);
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn svg { width: 18px; height: 18px; flex: none; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.deploy-img { display: inline-block; line-height: 0; }
+.deploy-img img { height: 42px; width: auto; }
+
+.hero { padding-top: 48px; padding-bottom: 40px; }
+.hero h1 { font-size: clamp(2rem, 6vw, 3.2rem); line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 16px; max-width: 18ch; }
+.hero p.lead { font-size: 1.15rem; color: var(--muted); max-width: 60ch; margin: 0 0 28px; }
+
+section { padding: 40px 0; border-top: 1px solid var(--line); }
+section h2 { font-size: 1.5rem; letter-spacing: -0.02em; margin: 0 0 8px; }
+section > .wrap > p.sub { color: var(--muted); margin: 0 0 24px; max-width: 65ch; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
+.card h3 { margin: 0 0 6px; font-size: 1.1rem; }
+.card p { margin: 0; color: var(--muted); font-size: 0.97rem; }
+.card .emoji { font-size: 1.6rem; display: block; margin-bottom: 8px; }
+
+ol.steps { list-style: none; padding: 0; margin: 0; counter-reset: step; display: grid; gap: 14px; }
+ol.steps li { counter-increment: step; display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; }
+ol.steps li::before {
+	content: counter(step); width: 32px; height: 32px; border-radius: 50%;
+	background: var(--accent); color: var(--accent-ink); font-weight: 700;
+	display: grid; place-items: center; font-size: 0.95rem;
+}
+ol.steps strong { display: block; }
+ol.steps span { color: var(--muted); }
+
+.connect { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.field label { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.copyrow { display: flex; gap: 8px; align-items: stretch; min-width: 0; }
+.copyrow pre {
+	flex: 1; min-width: 0; margin: 0; padding: 10px 12px; background: var(--code-bg);
+	border-radius: 8px; overflow-x: auto; white-space: pre;
+}
+.copyrow button {
+	flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--text);
+	border-radius: 8px; padding: 0 14px; font-weight: 600; cursor: pointer; font: inherit; font-size: 0.9rem;
+}
+.copyrow button:hover { border-color: var(--muted); }
+
+.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.tools h3 { margin: 0 0 8px; font-size: 1rem; }
+.tools ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+.tools li code { font-size: 0.82rem; }
+
+footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 0.92rem; }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+@media (max-width: 520px) {
+	body { font-size: 16px; }
+	.hero { padding-top: 24px; }
+	header.top .btn-label { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap top">
+	<a class="brand" href="/"><span aria-hidden="true">🍳</span>kitchen</a>
+	<a class="btn" href="https://github.com/lesentiel/kitchen" aria-label="kitchen on GitHub">
+		<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+		<span class="btn-label">GitHub</span>
+	</a>
+</header>
+
+<main>
+	<div class="wrap hero">
+		<h1>A shared kitchen for your cooking assistants.</h1>
+		<p class="lead">
+			Each of you has your own AI cook bot. kitchen gives the bots a shared place to work:
+			recipes, one grocery list, and notes about what everyone likes and can't eat.
+			It's an open-source <abbr title="Model Context Protocol">MCP</abbr> server you run on your own Cloudflare account, in one click.
+		</p>
+		<div class="actions">
+			<a class="deploy-img" href="https://deploy.workers.cloudflare.com/?url=https://github.com/lesentiel/kitchen">
+				<img src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare">
+			</a>
+			<a class="btn" href="https://github.com/lesentiel/kitchen">
+				<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+				View on GitHub
+			</a>
+		</div>
+	</div>
+
+	<section>
+		<div class="wrap">
+			<h2>What the bots share</h2>
+			<p class="sub">Whatever one assistant learns or saves, the other one can read. No more "my bot doesn't know you're vegetarian."</p>
+			<div class="cards">
+				<div class="card">
+					<span class="emoji" aria-hidden="true">📖</span>
+					<h3>Recipes</h3>
+					<p>Ingredients, steps, tags, and notes on how it turned out. Searchable by ingredient. Edits made at the same time don't overwrite each other.</p>
+				</div>
+				<div class="card">
+					<span class="emoji" aria-hidden="true">🛒</span>
+					<h3>One grocery list</h3>
+					<p>Add items, check them off at the store, clear what you bought. Add a whole recipe's ingredients in one go, skipping what's already on the list.</p>
+				</div>
+				<div class="card">
+					<span class="emoji" aria-hidden="true">🗒️</span>
+					<h3>Context notes</h3>
+					<p>Preferences, allergies, meal plans, and summaries of what you talked about with your bot. Each note records who wrote it and when.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section>
+		<div class="wrap">
+			<h2>How it works</h2>
+			<p class="sub">No accounts or passwords to share. Each person's bot gets its own key, which you can revoke at any time.</p>
+			<ol class="steps">
+				<li><div><strong>Deploy it</strong><span>Click "Deploy to Cloudflare". You get a Worker and a D1 database on your own account, both on the free plan. Choose a secret admin password during setup.</span></div></li>
+				<li><div><strong>Create your kitchen</strong><span>Ask your bot to call <code>create_kitchen</code> with the admin password. It gets back a private token for you.</span></div></li>
+				<li><div><strong>Invite your partner</strong><span><code>invite_member</code> gives you a one-time code like <code>KTCH-7QX4-M9PB-2RZD</code>. Their bot redeems it for its own token.</span></div></li>
+				<li><div><strong>Cook together</strong><span>Both bots now read and write the same recipes, grocery list, and notes.</span></div></li>
+			</ol>
+		</div>
+	</section>
+
+	<section>
+		<div class="wrap">
+			<h2>Connect your bot</h2>
+			<p class="sub">Use any assistant or app that supports remote MCP servers over Streamable HTTP with a custom header.</p>
+			<div class="connect">
+				<div class="field">
+					<label for="mcp-url">MCP server URL</label>
+					<div class="copyrow"><pre id="mcp-url">https://your-kitchen.workers.dev/mcp</pre><button type="button" data-copy="mcp-url">Copy</button></div>
+				</div>
+				<div class="field">
+					<label for="mcp-header">Header (after you have a token)</label>
+					<div class="copyrow"><pre id="mcp-header">Authorization: Bearer kit_…</pre><button type="button" data-copy="mcp-header">Copy</button></div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section>
+		<div class="wrap">
+			<h2>Tools</h2>
+			<p class="sub">Everything is an MCP tool. There's no dashboard to learn; you just ask your bot.</p>
+			<div class="tools">
+				<div><h3>Kitchen</h3><ul>
+					<li><code>create_kitchen</code></li><li><code>redeem_invite</code></li><li><code>whoami</code></li><li><code>invite_member</code></li><li><code>list_members</code></li><li><code>revoke_member</code></li><li><code>rotate_token</code></li>
+				</ul></div>
+				<div><h3>Recipes</h3><ul>
+					<li><code>create_recipe</code></li><li><code>get_recipe</code></li><li><code>update_recipe</code></li><li><code>delete_recipe</code></li><li><code>search_recipes</code></li>
+				</ul></div>
+				<div><h3>Grocery list</h3><ul>
+					<li><code>list_grocery</code></li><li><code>add_grocery_items</code></li><li><code>add_recipe_to_grocery</code></li><li><code>check_grocery_items</code></li><li><code>remove_grocery_items</code></li><li><code>clear_checked_grocery</code></li>
+				</ul></div>
+				<div><h3>Notes</h3><ul>
+					<li><code>save_note</code></li><li><code>search_notes</code></li><li><code>delete_note</code></li>
+				</ul></div>
+			</div>
+		</div>
+	</section>
+</main>
+
+<footer>
+	<div class="wrap">
+		<span>kitchen is open source under the MIT license.</span>
+		<span><a href="https://github.com/lesentiel/kitchen">GitHub</a> · <a href="https://github.com/lesentiel/kitchen/blob/main/docs/DESIGN.md">Design notes</a></span>
+	</div>
+</footer>
+
+<script>
+	// Show this server's own MCP URL.
+	document.getElementById("mcp-url").textContent = location.origin + "/mcp";
+	for (const button of document.querySelectorAll("[data-copy]")) {
+		button.addEventListener("click", async () => {
+			const text = document.getElementById(button.dataset.copy).textContent;
+			try {
+				await navigator.clipboard.writeText(text);
+				button.textContent = "Copied";
+			} catch {
+				button.textContent = "Select & copy";
+			}
+			setTimeout(() => (button.textContent = "Copy"), 1500);
+		});
+	}
+</script>
+</body>
+</html>
