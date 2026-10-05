@@ -77,6 +77,10 @@ pnpm run deploy:lesentiel                             # cf deploy --mode lesenti
 
 For your own domain, edit the `domains` line in `cloudflare.config.ts`. The zone must be on the account you deploy to. A plain `pnpm run deploy` stays on `*.workers.dev`.
 
+## Grok plugin
+
+`plugin/` is a Grok plugin: an MCP server config plus a skill that teaches Grok the setup flow and tools. Install it with `grok plugin install lesentiel/kitchen#plugin --trust`, then set `KITCHEN_TOKEN` (and `KITCHEN_MCP_URL` if you self-host). See [plugin/README.md](plugin/README.md). Validate changes with `grok plugin validate plugin`.
+
 ## Connecting a bot
 
 Any MCP client that supports remote Streamable HTTP servers with custom headers:
@@ -97,6 +101,7 @@ src/server.ts          MCP tools and zod schemas
 src/{kitchen,recipes,grocery,notes}.ts   data access, always scoped to the caller's kitchen
 test/                  Workers-runtime tests
 scripts/               sample session
+plugin/                Grok plugin (manifest, .mcp.json, skill)
 docs/DESIGN.md         design and decisions
 ```
 

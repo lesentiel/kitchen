@@ -1,0 +1,14 @@
+{
+  "name": "kitchen",
+  "version": "0.1.0",
+  "description": "Shared kitchen for household cook bots: recipes, one shared grocery list, and context notes (preferences, allergies, meal plans) that every member's Grok can read and write, via the kitchen MCP server at kitchen.lesentiel.com or your own self-hosted Cloudflare Worker.",
+  "author": {
+    "name": "lesentiel",
+    "url": "https://github.com/lesentiel"
+  },
+  "homepage": "https://kitchen.lesentiel.com",
+  "repository": "https://github.com/lesentiel/kitchen",
+  "license": "MIT",
+  "keywords": ["kitchen", "lesentiel kitchen", "kitchen mcp", "shared kitchen"],
+  "logo": "assets/logo.svg"
+}

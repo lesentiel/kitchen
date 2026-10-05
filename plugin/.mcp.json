@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "kitchen": {
+      "type": "http",
+      "url": "${KITCHEN_MCP_URL:-https://kitchen.lesentiel.com/mcp}",
+      "headers": {
+        "Authorization": "Bearer ${KITCHEN_TOKEN:-}"
+      }
+    }
+  }
+}

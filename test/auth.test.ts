@@ -34,6 +34,23 @@ describe("auth", () => {
 		expect(me.me.display_name).toBe("Simon");
 	});
 
+	it("treats an empty bearer (unset token env var) as anonymous", async () => {
+		for (const header of ["Bearer ", "Bearer", ""]) {
+			const res = await workerFetch("https://kitchen.test/mcp", {
+				method: "POST",
+				headers: {
+					Authorization: header,
+					"Content-Type": "application/json",
+					Accept: "application/json, text/event-stream",
+					"MCP-Protocol-Version": "2025-06-18",
+				},
+				body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+			});
+			expect(res.status, JSON.stringify(header)).toBe(200);
+			expect(await res.text()).toContain("redeem_invite");
+		}
+	});
+
 	it("rejects unknown and malformed tokens with 401", async () => {
 		for (const header of ["Bearer kit_not-a-real-token", "Basic abc"]) {
 			const res = await workerFetch("https://kitchen.test/mcp", {

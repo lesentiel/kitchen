@@ -12,6 +12,10 @@ export interface Member {
 export function bearerToken(request: Request): string | null | undefined {
 	const header = request.headers.get("authorization");
 	if (header === null) return undefined; // anonymous
+	// Clients configured with `Authorization: Bearer ${KITCHEN_TOKEN:-}` send an
+	// empty bearer before the member has a token; treat that as anonymous so
+	// create_kitchen / redeem_invite still work.
+	if (/^\s*(Bearer\s*)?$/i.test(header)) return undefined;
 	const match = /^Bearer\s+(\S+)\s*$/i.exec(header);
 	return match ? match[1] : null; // null = malformed
 }

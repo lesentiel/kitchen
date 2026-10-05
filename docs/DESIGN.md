@@ -55,7 +55,7 @@ Alex's bot ── invite_member(expires_in_minutes=60) ──▶ code "KTCH-7QX4
 Sam's bot  ── redeem_invite(code, display_name) ──▶ token B  (shown once)
 ```
 
-* **No `Authorization` header**: anonymous. `tools/list` shows only `create_kitchen` and `redeem_invite`.
+* **No `Authorization` header, or an empty `Bearer`** (what the Grok plugin sends before a token is set): anonymous. `tools/list` shows only `create_kitchen` and `redeem_invite`.
 * **Valid `Bearer` token**: member. `tools/list` shows the 19 kitchen tools. The token-minting tools are hidden.
 * **Unknown, revoked, or malformed token**: HTTP `401` with `WWW-Authenticate: Bearer error="invalid_token"`. This happens before any MCP processing.
 * **Tokens**: `kit_` + 32 random bytes (base64url, 256 bits). D1 stores `sha256(token)` only. A salted KDF isn't needed: the token is high-entropy and random, not a password.
@@ -232,7 +232,7 @@ A related constraint: the pool's bundled workerd supports compatibility dates up
 
 ## Testing
 
-`pnpm test` runs 33 tests in workerd through the Workers Vitest pool, driving the Worker over HTTP with the real MCP client (`@modelcontextprotocol/client`, `fetch` pointed at the Worker):
+`pnpm test` runs 34 tests in workerd through the Workers Vitest pool, driving the Worker over HTTP with the real MCP client (`@modelcontextprotocol/client`, `fetch` pointed at the Worker):
 
 * `auth.test.ts`: anonymous vs member tool lists, the admin secret, 401s, hashed storage, rotate, revoke.
 * `invites.test.ts`: redeem, code normalization, single use, **concurrent** single use, expiry, unknown codes, hashed storage.
@@ -243,6 +243,32 @@ A related constraint: the pool's bundled workerd supports compatibility dates up
 `pnpm sample-session` runs the end-to-end story against `pnpm dev`: create, invite, redeem, recipe, groceries, note, then read back as the partner.
 
 The pool reads inline Miniflare options, not `cloudflare.config.ts`, so `vitest.config.ts` mirrors the bindings by hand.
+
+## Grok plugin
+
+`plugin/` packages kitchen for Grok's plugin marketplace ([xai-org/plugin-marketplace](https://github.com/xai-org/plugin-marketplace)):
+
+```
+plugin/
+  .grok-plugin/plugin.json   manifest (name, version, description, author, homepage, repository, license, keywords, logo)
+  .mcp.json                  the kitchen MCP server
+  skills/kitchen/SKILL.md    setup flow + how to use the tools well
+  assets/logo.svg            icon
+  README.md, LICENSE         required for review; declares endpoints and credentials
+```
+
+It lives in a subdirectory, not at the repo root, so the plugin's `.mcp.json` doesn't also load as a project MCP server for anyone working on this repo. The marketplace entry points at it with `source.path: "plugin"`; direct installs use `lesentiel/kitchen#plugin`.
+
+**Auth.** Grok plugins have no setup-field or secret-prompt mechanism. The plugin manifest has 14 fields, none for user config, and the two MCP plugins in the catalog use OAuth. Grok's documented way to pass a static bearer token is `${VAR}` expansion in MCP `headers` and `url`, so `.mcp.json` sends:
+
+```json
+"url": "${KITCHEN_MCP_URL:-https://kitchen.lesentiel.com/mcp}",
+"headers": { "Authorization": "Bearer ${KITCHEN_TOKEN:-}" }
+```
+
+Before the user has a token, `KITCHEN_TOKEN` is unset and the header becomes `Bearer ` (empty). The server treats an empty bearer as anonymous (`src/auth.ts`), so the same configuration first offers `create_kitchen` / `redeem_invite` and, once `KITCHEN_TOKEN` is set and Grok restarted, all 19 member tools. I checked this with the real Grok CLI (1.0.46) in an isolated `HOME`: `grok mcp doctor` against `cf dev` discovered 2 tools with no token, 19 with a valid token, and got a 401 `invalid_token` challenge with a bogus one. `KITCHEN_MCP_URL` expansion (self-hosting) and its default were checked with `grok inspect`.
+
+`bearer_token_file` (Grok re-reads a token file on every request, so no restart is needed) was rejected for now. Grok fails the request when the file is missing, which would break the anonymous bootstrap, and it's a `config.toml` key whose support in plugin `.mcp.json` isn't documented.
 
 ## Open questions
 
@@ -255,4 +281,5 @@ The pool reads inline Miniflare options, not `cloudflare.config.ts`, so `vitest.
 7. **Grok's MCP client**: which protocol version and auth mechanism does it use? We support static bearer headers and both protocol eras. If Grok only supports OAuth for remote MCP servers, we need the OAuth layer sooner.
 8. **Invites**: should there be `list_invites` and `revoke_invite`? Today an unredeemed invite simply expires (60 minutes by default).
 9. **Rate limiting** on the anonymous tools. Brute-forcing a ≈78-bit invite code or the admin secret is impractical, but a Workers rate-limit binding on anonymous `/mcp` traffic is cheap insurance.
-10. **Deleting a kitchen or leaving one** isn't implemented. Should the last member be able to delete everything?
+10. **OAuth for the plugin.** Grok's marketplace plugins mostly use OAuth (a browser sign-in on first connect). Static tokens in env vars work, as verified above, but mean a restart after setup. An OAuth layer (`workers-oauth-provider`, with invite redemption as the consent step) would make the plugin zero-config.
+11. **Deleting a kitchen or leaving one** isn't implemented. Should the last member be able to delete everything?
