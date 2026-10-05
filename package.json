@@ -1,0 +1,45 @@
+{
+	"name": "kitchen",
+	"description": "Shared-kitchen MCP server on Cloudflare Workers + D1: recipes, a shared grocery list, and context notes for every member's cook bot.",
+	"private": true,
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/lesentiel/kitchen.git"
+	},
+	"type": "module",
+	"engines": {
+		"node": ">=22.18"
+	},
+	"scripts": {
+		"dev": "cf dev",
+		"build": "cf build",
+		"deploy": "cf deploy",
+		"deploy:lesentiel": "cf deploy --mode lesentiel",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"typecheck": "cf workers types && tsc && tsc -p scripts",
+		"sample-session": "node scripts/sample-session.ts"
+	},
+	"cloudflare": {
+		"bindings": {
+			"KITCHEN_ADMIN_SECRET": {
+				"description": "Secret that unlocks the `create_kitchen` tool. Use a long random string (e.g. `openssl rand -base64 32`) and keep it private; anyone with it can create kitchens on your server."
+			}
+		}
+	},
+	"dependencies": {
+		"@modelcontextprotocol/server": "^2.3.0",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "2.0.0-beta.sha-52b0dc0e9",
+		"@cloudflare/vitest-pool-workers": "^0.22.0",
+		"@modelcontextprotocol/client": "^2.3.0",
+		"@types/node": "^24.19.1",
+		"cf": "1.0.0-beta.12",
+		"typescript": "^7.0.2",
+		"vite": "^8.3.0",
+		"vitest": "^4.1.11"
+	}
+}
